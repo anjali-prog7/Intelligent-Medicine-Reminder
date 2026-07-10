@@ -1,0 +1,147 @@
+.chartSection{
+
+display:grid;
+
+grid-template-columns:2fr 1fr;
+
+gap:25px;
+
+padding:40px;
+
+}
+
+.chartCard{
+
+background:white;
+
+padding:25px;
+
+border-radius:20px;
+
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+
+}
+
+.chartCard h2{
+
+margin-bottom:20px;
+
+color:#1F2937;
+
+}
+
+.healthCard{
+
+background:white;
+
+padding:30px;
+
+border-radius:20px;
+
+text-align:center;
+
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+
+}
+
+.circle{
+
+width:180px;
+
+height:180px;
+
+border-radius:50%;
+
+margin:30px auto;
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+border:14px solid #009688;
+
+}
+
+.circle h1{
+
+font-size:55px;
+
+color:#009688;
+
+}
+
+.circle span{
+
+font-size:18px;
+
+color:#555;
+
+}
+
+.healthCard p{
+
+font-size:17px;
+
+color:#666;
+
+margin-top:15px;
+
+}
+
+.bottomGrid{
+
+display:grid;
+
+grid-template-columns:1fr 1fr;
+
+gap:25px;
+
+padding:0 40px 40px;
+
+}
+
+.activityCard{
+
+background:white;
+
+padding:25px;
+
+border-radius:20px;
+
+box-shadow:0 8px 18px rgba(0,0,0,.08);
+
+}
+
+.activityCard h2{
+
+margin-bottom:20px;
+
+color:#0F172A;
+
+}
+
+.activityCard ul{
+
+list-style:none;
+
+}
+
+.activityCard li{
+
+padding:15px;
+
+border-bottom:1px solid #ECECEC;
+
+font-size:17px;
+
+}
+
+.activityCard li:last-child{
+
+border:none;
+
+}
