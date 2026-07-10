@@ -1,0 +1,165 @@
+.sidebar {
+
+    position: fixed;
+
+    top: 75px;              /* Navbar ki height */
+
+    left: 0;
+
+    width: 240px;
+
+    height: calc(100vh - 75px);
+
+    background: #0F766E;     /* Light Teal */
+
+    color: white;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: space-between;
+
+    padding: 20px 16px;
+
+    box-sizing: border-box;
+
+    overflow-y: auto;
+
+    box-shadow: 2px 0 12px rgba(0,0,0,0.08);
+
+    z-index: 999;
+
+}
+
+/* ================= Logo ================= */
+
+.logo {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-bottom: 25px;
+
+}
+
+.logo-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    border-radius: 12px;
+
+    background: white;
+
+    color: #0F766E;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 22px;
+
+}
+
+.logo h2 {
+
+    font-size: 22px;
+
+    font-weight: 600;
+
+}
+
+/* ================= Menu ================= */
+
+.menu {
+
+    list-style: none;
+
+    padding: 0;
+
+    margin: 0;
+
+}
+
+.menu li {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    margin-bottom: 8px;
+
+    cursor: pointer;
+
+    transition: all 0.3s ease;
+
+    font-size: 15px;
+
+    font-weight: 500;
+
+}
+
+.menu li svg {
+
+    font-size: 18px;
+
+}
+
+.menu li:hover {
+
+    background: rgba(255,255,255,0.15);
+
+}
+
+.menu li.active {
+
+    background: rgba(255,255,255,0.22);
+
+}
+
+/* ================= Logout ================= */
+
+.logout {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    transition: 0.3s;
+
+}
+
+.logout svg {
+
+    font-size: 18px;
+
+}
+
+.logout:hover {
+
+    background: rgba(255,255,255,0.15);
+
+}
