@@ -1,14 +1,32 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import api from "../services/api";
 import "../styles/Register.css";
 
+// Indian mobile validation helper
+const isValidIndianPhone = (phone) => {
+  // Accept: 10 digits starting with 6-9, optional +91 or 0 prefix
+  const cleaned = phone.replace(/[\s-]/g, "");
+  return /^(?:\+91|0)?[6-9]\d{9}$/.test(cleaned);
+};
+
+const formatIndianPhone = (phone) => {
+  // Strip +91 or 0 prefix, keep last 10 digits
+  const cleaned = phone.replace(/[\s-]/g, "");
+  if (cleaned.startsWith("+91")) return cleaned.slice(3);
+  if (cleaned.startsWith("0")) return cleaned.slice(1);
+  return cleaned;
+};
+
 function Register() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
+    phone: "",
     password: "",
     role: "PATIENT",
   });
@@ -18,6 +36,7 @@ function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
@@ -39,6 +58,19 @@ function Register() {
       return;
     }
 
+    // Validate Indian mobile number
+    if (!formData.phone.trim()) {
+      setPhoneError("Mobile Number is required.");
+      alert("Please enter your mobile number.");
+      return;
+    }
+    if (!isValidIndianPhone(formData.phone)) {
+      setPhoneError("Enter a valid Indian mobile number (10 digits starting with 6-9, optional +91 or 0 prefix).");
+      alert("Enter a valid Indian mobile number (10 digits starting with 6-9).");
+      return;
+    }
+    setPhoneError("");
+
     if (!formData.password) {
       alert("Please create a password.");
       return;
@@ -54,18 +86,29 @@ function Register() {
       return;
     }
 
+    // Clear any stale tokens before registering
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+
     console.log("Sending Data:", formData);
 
     try {
       setLoading(true);
 
+      // Format phone to 10 digits before sending
+      const payload = {
+        ...formData,
+        phone: formatIndianPhone(formData.phone),
+      };
+
       const response = await api.post(
         "accounts/register/",
-        formData
+        payload
       );
 
       console.log("Success:", response.data);
       alert("Registration Successful!");
+      navigate("/login");
     } catch (error) {
       console.log("===== ERROR START =====");
       console.log("Full Error:", error);
@@ -74,11 +117,29 @@ function Register() {
       console.log("Status:", error.response?.status);
       console.log("===== ERROR END =====");
 
-      alert(
-        JSON.stringify(
-          error.response?.data || error.message
-        )
-      );
+      // Handle "Network Error" gracefully with a user-friendly message
+      if (!error.response) {
+        alert(
+          "Unable to connect to the server. Please make sure the backend is running and try again. (Network Error)"
+        );
+      } else {
+        const errorData = error.response?.data;
+        if (errorData && typeof errorData === "object") {
+          // Format validation errors nicely
+          const messages = Object.entries(errorData)
+            .map(([field, errors]) => {
+              const errs = Array.isArray(errors) ? errors.join(", ") : errors;
+              return `${field}: ${errs}`;
+            })
+            .join("\n");
+          alert(messages || "Registration failed. Please check your input.");
+        } else {
+          alert(
+            JSON.stringify(errorData) ||
+              "Registration failed. Please try again."
+          );
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -193,6 +254,38 @@ function Register() {
                   placeholder="Enter your email address"
                   autoComplete="email"
                 />
+              </div>
+            </div>
+
+            <div className="register-field">
+              <div className="field-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6.62 10.79a15.46 15.46 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.61 21 3 13.39 3 4c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2Z" />
+                </svg>
+              </div>
+
+              <div className="field-content">
+                <label htmlFor="phone">
+                  Mobile Number <span className="required-star">*</span>
+                </label>
+
+                <input
+                  id="phone"
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    if (phoneError) setPhoneError("");
+                  }}
+                  placeholder="Enter your 10-digit mobile number"
+                  autoComplete="tel"
+                  className={phoneError ? "field-error" : ""}
+                  maxLength={15}
+                />
+                {phoneError && (
+                  <span className="field-error-message">{phoneError}</span>
+                )}
               </div>
             </div>
 

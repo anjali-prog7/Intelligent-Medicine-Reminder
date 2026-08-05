@@ -7,10 +7,14 @@ import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import Medicines from "./pages/Medicines";
 import Reminders from "./pages/Reminders";
+import AiAssistant from "./pages/AiAssistant";
+import PrescriptionOcr from "./pages/PrescriptionOcr";
+import Refill from "./pages/Refill";
 
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Footer from "./components/Footer";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import "./App.css";
 
@@ -39,22 +43,22 @@ function App() {
       <Route path="/register" element={<Register />} />
 
 
-      {/* Dashboard */}
-      <Route path="/dashboard" element={<Dashboard />} />
+      {/* Protected Routes */}
+      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 
+      <Route path="/medicines" element={<ProtectedRoute><Medicines /></ProtectedRoute>} />
 
-      {/* Medicines Separate Page */}
-      <Route path="/medicines" element={<Medicines />} />
+      <Route path="/reminders" element={<ProtectedRoute><Reminders /></ProtectedRoute>} />
 
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-      {/* Reminder Separate Page */}
-      <Route path="/reminders" element={<Reminders />} />
+      <Route path="/aiassistant" element={<ProtectedRoute><AiAssistant /></ProtectedRoute>} />
 
+      <Route path="/dashboard/prescription-ocr" element={<ProtectedRoute><PrescriptionOcr /></ProtectedRoute>} />
 
-      <Route path="/profile" element={<Profile />} />
+      <Route path="/refill" element={<ProtectedRoute><Refill /></ProtectedRoute>} />
 
-
-      <Route path="*" element={<NotFound />} />
+      <Route path="*"  element={<NotFound />} />
 
 
     </Routes>

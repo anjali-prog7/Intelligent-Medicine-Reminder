@@ -41,7 +41,7 @@ function Navbar() {
           AI Assistant
         </li>
 
-        <li onClick={() => navigate("/features")}>
+        <li onClick={() => navigate("/")}>
           Features
         </li>
 

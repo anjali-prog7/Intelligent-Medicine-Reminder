@@ -35,4 +35,6 @@ urlpatterns = [
     path("api/medicines/", include("medicines.urls")),
 
     path("api/reminders/", include("reminders.urls")),
+
+    path("api/assistant/", include("assistant.urls")),
 ]

@@ -27,6 +27,7 @@ class ProfileView(APIView):
             {
                 "username": request.user.username,
                 "email": request.user.email,
+                "phone": request.user.phone,
                 "role": request.user.role,
             }
         )

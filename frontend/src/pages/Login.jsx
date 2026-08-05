@@ -26,29 +26,32 @@ function Login() {
       [e.target.name]: e.target.value,
     });
   };
-
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      const response = await api.post("token/", formData);
+    console.log("LOGIN DATA:", formData);
 
-      localStorage.setItem("access", response.data.access);
-      localStorage.setItem("refresh", response.data.refresh);
+    const response = await api.post("token/", formData);
 
-      alert("Login Successful!");
+    console.log("LOGIN RESPONSE:", response.data);
 
-      navigate("/dashboard");
-    } catch (error) {
-      console.log(error.response?.data);
-      alert("Invalid Username or Password");
-    } finally {
-      setLoading(false);
-    }
-  };
+    localStorage.setItem("access", response.data.access);
+    localStorage.setItem("refresh", response.data.refresh);
 
+    alert("Login Successful!");
+
+    navigate("/dashboard");
+  } catch (error) {
+    console.log("LOGIN ERROR:", error.response?.data);
+    alert(JSON.stringify(error.response?.data));
+  } finally {
+    setLoading(false);
+  }
+};
+ 
   return (
     <>
       <Navbar />

@@ -1,11 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from "@react-oauth/google";
-
-
+import api from "../services/api";
 
 function Hero() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleQuickLogin = async () => {
+    if (!email || !password) {
+      navigate("/login");
+      return;
+    }
+    try {
+      const response = await api.post("token/", {
+        username: email,
+        password: password,
+      });
+      localStorage.setItem("access", response.data.access);
+      localStorage.setItem("refresh", response.data.refresh);
+      navigate("/dashboard");
+    } catch (error) {
+      navigate("/login");
+    }
+  };
+
   return (
     <section className="hero">
 
@@ -55,47 +75,55 @@ function Hero() {
           <h2>Login to your account</h2>
           <p>Glad to see you again! 👋</p>
 
-          <input type="email" placeholder="Email address" />
+          <input
+            type="text"
+            placeholder="Username or email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <input type="password" placeholder="Password" />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
 
           <div className="remember">
-  <label className="remember-label">
-    <input type="checkbox" />
-    <span>Remember me</span>
-  </label>
+            <label className="remember-label">
+              <input type="checkbox" />
+              <span>Remember me</span>
+            </label>
+            <span className="forgot">Forgot password?</span>
+          </div>
 
-  <span className="forgot">Forgot password?</span>
-</div>
+          <button className="login-btn" onClick={handleQuickLogin}>
+            Login
+          </button>
 
-<button
-  className="login-btn"
-  onClick={() => navigate("/dashboard")}
->
-  Login
-</button>
+          <div className="divider">
+            <span>or continue with</span>
+          </div>
 
-<div className="divider">
-  <span>or continue with</span>
-</div>
+          <div className="social">
+            <GoogleLogin
+              onSuccess={(credentialResponse) => {
+                console.log("Google Login Success");
+                console.log(credentialResponse);
+                navigate("/dashboard");
+              }}
+              onError={() => {
+                console.log("Google Login Failed");
+              }}
+            />
+          </div>
 
-<div className="social">
-  <GoogleLogin
-    onSuccess={(credentialResponse) => {
-      console.log("Google Login Success");
-      console.log(credentialResponse);
-
-      navigate("/dashboard");
-    }}
-    onError={() => {
-      console.log("Google Login Failed");
-    }}
-  />
-</div>
-
-<p className="signup">
-  Don't have an account? <span>Sign Up</span>
-</p>
+          <p className="signup">
+            Don't have an account?{" "}
+            <span onClick={() => navigate("/register")} style={{ cursor: "pointer" }}>
+              Sign Up
+            </span>
+          </p>
 
         </div>
 
