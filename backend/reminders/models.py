@@ -7,8 +7,10 @@ class Reminder(models.Model):
 
     STATUS_CHOICES = (
         ("PENDING", "Pending"),
+        ("TRIGGERED", "Triggered"),
         ("TAKEN", "Taken"),
         ("MISSED", "Missed"),
+        ("SNOOZED", "Snoozed"),
     )
 
     user = models.ForeignKey(
@@ -35,7 +37,98 @@ class Reminder(models.Model):
 
     notification_sent = models.BooleanField(default=False)
 
+    is_recurring = models.BooleanField(default=False)
+
+    recurring_interval = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="Daily, Weekly, Monthly"
+    )
+
+    snoozed_until = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text="If snoozed, the time until which the reminder is snoozed"
+    )
+
+    retry_count = models.PositiveIntegerField(default=0)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.medicine.medicine_name} - {self.reminder_time}"
+
+
+class NotificationLog(models.Model):
+
+    CHANNEL_CHOICES = (
+        ("EMAIL", "Email"),
+        ("SMS", "SMS"),
+        ("PUSH", "Push"),
+    )
+
+    STATUS_CHOICES = (
+        ("PENDING", "Pending"),
+        ("SENT", "Sent"),
+        ("FAILED", "Failed"),
+        ("CONFIGURATION_ERROR", "Configuration Error"),
+        ("SKIPPED", "Skipped"),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notification_logs"
+    )
+
+    reminder = models.ForeignKey(
+        Reminder,
+        on_delete=models.CASCADE,
+        related_name="notification_logs"
+    )
+
+    channel = models.CharField(
+        max_length=20,
+        choices=CHANNEL_CHOICES
+    )
+
+    recipient = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Email address, phone number, or device token"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    sent_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
+    error_message = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    retry_count = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "reminder"]),
+            models.Index(fields=["status"]),
+            models.Index(fields=["channel"]),
+        ]
+
+    def __str__(self):
+        return f"{self.get_channel_display()} - {self.reminder} - {self.get_status_display()}"
