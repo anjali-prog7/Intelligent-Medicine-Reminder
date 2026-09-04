@@ -15,8 +15,38 @@ import os
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from backend/.env using an explicit path so it
+# works regardless of the working directory the server is started from.
+load_dotenv(BASE_DIR / ".env")
+
+# OpenAI API Key (optional - for AI Assistant)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+# Gemini API Key (optional - for AI-based medicine validation)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+# =============================================================================
+# GEMINI VISION EXTRACTION (AI Vision medicine / prescription extraction)
+# =============================================================================
+# When enabled and GEMINI_API_KEY is configured, the upload pipeline first
+# sends the (preprocessed) image to Gemini Vision with Google Structured
+# Output and maps the JSON back to the existing response format. Any AI
+# failure silently falls back to the offline RapidOCR pipeline, so uploads
+# never break when the AI is down.
+GEMINI_VISION_EXTRACTION_ENABLED = os.getenv(
+    "GEMINI_VISION_EXTRACTION_ENABLED", "True"
+) == "True"
+
+# Model used for vision extraction (supports structured output).
+GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-flash-latest")
+
+# HTTP timeout (seconds) for a single Gemini Vision request.
+GEMINI_VISION_TIMEOUT = int(os.getenv("GEMINI_VISION_TIMEOUT", "45"))
+
+# Maximum number of PDF pages sent to the vision model.
+GEMINI_VISION_MAX_PAGES = int(os.getenv("GEMINI_VISION_MAX_PAGES", "3"))
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +58,7 @@ SECRET_KEY = "django-insecure-uu1x+q2(#ett&#)mo_0jh2ai$yhc91egqrof3e@l@-wtl+*ola
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -46,6 +76,7 @@ INSTALLED_APPS = [
     "users",
     "medicines",
     "reminders",
+    "assistant",
 ]
 
 MIDDLEWARE = [
@@ -118,7 +149,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+# Reminders are stored as LOCAL wall-clock time (the time the user selects).
+# The scheduler compares against this LOCAL time, so the server timezone must
+# match the users' timezone (India / IST).
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 
@@ -145,9 +179,120 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": True,
+    # Update the user's last_login whenever a token pair is issued (login),
+    # so the Profile page's "Last Login" reflects real sign-ins.
+    "UPDATE_LAST_LOGIN": True,
+}
+
+# Email Configuration
+# DEFAULT_FROM_EMAIL is the sender address — it is NEVER used as a recipient.
+# Recipient is always reminder.user.email.
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+# Case-insensitive: "True", "true", "1" all enable TLS (a lowercase "true"
+# previously silently disabled TLS, which makes Gmail reject authentication).
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() in ("true", "1")
+
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+# Gmail displays app passwords as "xxxx xxxx xxxx xxxx" (16 chars with
+# display spaces). Strip them so a freshly-pasted app password authenticates;
+# a password WITH the display spaces can be rejected with 535 5.7.8.
+EMAIL_HOST_PASSWORD = (os.getenv("EMAIL_HOST_PASSWORD") or "").replace(" ", "")
+
+# DEFAULT_FROM_EMAIL MUST match EMAIL_HOST_USER for Gmail SMTP
+# Gmail replaces/modifies the From header if it doesn't match the authenticated user.
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", "noreply@pillsync.com")
+# =============================================================================
+# TWILIO (SMS Notifications)
+# =============================================================================
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
+# TWILIO_FROM is the canonical env var name; TWILIO_PHONE_NUMBER is kept as a
+# backwards-compatible alias so existing .env files keep working.
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_FROM") or os.getenv("TWILIO_PHONE_NUMBER", "")
+
+# =============================================================================
+# MEDICINE VALIDATION PROVIDER CHAIN
+# =============================================================================
+# The order determines priority. Each provider is tried sequentially.
+# Available: "RXNORM_OPENFDA" (includes Indian-brand fallback)
+VALIDATION_PROVIDER_CHAIN = os.getenv(
+    "VALIDATION_PROVIDER_CHAIN",
+    "RXNORM_OPENFDA",
+)
+
+# AI provider priority. Available: "OPENAI", "GEMINI"
+AI_PROVIDER_CHAIN = os.getenv(
+    "AI_PROVIDER_CHAIN",
+    "OPENAI,GEMINI",
+)
+
+# =============================================================================
+# OCR AI SPELL-CORRECTION (OPTIONAL — OFF by default)
+# =============================================================================
+# When enabled ("True") and an AI key is configured, the OCR pipeline may
+# consult the existing AIAssistanceService for typo correction AFTER local
+# exact/merged/fuzzy matching fails. Suggestions are only accepted if they
+# re-verify against the local medicine knowledge base. Off by default so the
+# OCR pipeline stays fully offline and non-blocking.
+OCR_AI_CORRECTION_ENABLED = os.getenv("OCR_AI_CORRECTION_ENABLED", "False") == "True"
+
+# =============================================================================
+# CELERY CONFIGURATION
+# =============================================================================
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = "Asia/Kolkata"
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "logs", "pillsync.log"),
+            "formatter": "verbose",
+        },
+    },
+    "root": {
+        "handlers": ["console", "file"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "reminders": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
 }

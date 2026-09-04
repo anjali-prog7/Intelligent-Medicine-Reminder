@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User
+from datetime import time
 
 
 class Medicine(models.Model):
@@ -27,6 +28,27 @@ class Medicine(models.Model):
     dosage = models.CharField(max_length=50)
 
     frequency = models.CharField(max_length=50)
+
+    # Number of times per day this medicine should be taken (1–4).
+    # Used for daily dose calculations, refill tracking, and adherence.
+    FREQUENCY_DOSES_CHOICES = (
+        (1, "1 time/day"),
+        (2, "2 times/day"),
+        (3, "3 times/day"),
+        (4, "4 times/day"),
+    )
+
+    frequency_doses_per_day = models.PositiveSmallIntegerField(
+        choices=FREQUENCY_DOSES_CHOICES,
+        default=1,
+        help_text="How many times per day this medicine should be taken (1–4).",
+    )
+
+    reminder_time = models.TimeField(default=time(9, 0))
+
+    stock = models.PositiveIntegerField(default=0)
+
+    is_active = models.BooleanField(default=True)
 
     start_date = models.DateField()
 

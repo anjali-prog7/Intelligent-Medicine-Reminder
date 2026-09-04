@@ -1,10 +1,25 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/Navbar.css";
 
 function Navbar() {
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scrolls to the About section on the Home page. When the user is on
+  // another page, navigate Home first and let the Home component finish
+  // the scroll once it has rendered (via location.state.scrollToAbout).
+  const handleAboutClick = () => {
+    if (location.pathname === "/") {
+      document.getElementById("about")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    } else {
+      navigate("/", { state: { scrollToAbout: true } });
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -25,6 +40,10 @@ function Navbar() {
           Home
         </li>
 
+        <li onClick={handleAboutClick}>
+          About
+        </li>
+
         <li onClick={() => navigate("/dashboard")}>
           Dashboard
         </li>
@@ -39,10 +58,6 @@ function Navbar() {
 
         <li onClick={() => navigate("/aiassistant")}>
           AI Assistant
-        </li>
-
-        <li onClick={() => navigate("/features")}>
-          Features
         </li>
 
       </ul>

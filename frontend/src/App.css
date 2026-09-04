@@ -53,9 +53,19 @@ color:#0d7874;
 .hero{
 display:flex;
 justify-content:space-between;
-align-items:center;
+align-items:flex-start;
 padding:70px;
-min-height:80vh;
+/* The navbar is position: fixed and 75px tall, so it overlays the top of
+   the viewport and takes up no layout space. Reserve only its height (plus
+   a small 20px breathing gap) as top padding so the Hero content — including
+   the white Login card — starts BELOW the navbar and the complete Login
+   card fits inside the remaining viewport height instead of being pushed
+   below the visible area. */
+padding-top:calc(75px + 20px);
+/* The Hero is the Home page's content area below the fixed navbar, so it
+   fills the remaining viewport height (100vh minus the 75px navbar) rather
+   than a fixed 80vh slice. */
+min-height:calc(100vh - 75px);
 }
 
 .left{
@@ -88,6 +98,7 @@ line-height:1.7;
 display:flex;
 gap:30px;
 margin-top:50px;
+flex-wrap:wrap; /* keep the 3 cards aligned when space is tight */
 }
 
 .feature{
@@ -95,7 +106,10 @@ background:white;
 padding:20px;
 border-radius:15px;
 width:180px;
+/* Clearly visible border in the exact project green (#0F766E). */
+border:2px solid #0F766E;
 box-shadow:0 10px 20px rgba(0,0,0,.1);
+transition:transform .25s ease, box-shadow .25s ease;
 }
 
 .feature h3{
@@ -137,11 +151,35 @@ color:#1C2733;
     color:#9CA3AF;
 }
 
-.remember{
-display:flex;
-justify-content:space-between;
-font-size:14px;
-margin-bottom:20px;
+.remember {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 15px 0;
+}
+
+.remember-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.remember-label input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.forgot {
+  cursor: pointer;
+  color: #0f8f88;
+}
+
+.social {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .login-btn{
@@ -161,9 +199,10 @@ margin:20px;
 color:#777;
 }
 
-.social{
-display:flex;
-gap:20px;
+.social > div {
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .social button{
@@ -174,6 +213,7 @@ border:1px solid #ccc;
 background:white;
 cursor:pointer;
 }
+
 
 .signup{
 margin-top:20px;
@@ -198,32 +238,17 @@ cursor:pointer;
     color:#0b7a75;
 }
 
-/* Footer */
-
-footer{
-background:#0d7874;
-color:white;
-margin-top:40px;
+/* Subtle hover lift + soft green glow in the exact project green. */
+.feature:hover{
+    transform:translateY(-6px);
+    box-shadow:0 14px 28px rgba(15,118,110,.25);
 }
 
-.footer{
-display:grid;
-grid-template-columns:repeat(5,1fr);
-padding:50px 80px;
-gap:40px;
+/* Center the cards when they wrap on smaller screens. */
+@media (max-width:700px){
+    .features{
+        justify-content:center;
+    }
 }
 
-.footer h3{
-margin-bottom:15px;
-}
-
-.footer p{
-margin:8px 0;
-color:#dcecec;
-}
-
-.copyright{
-text-align:center;
-padding:20px;
-border-top:1px solid rgba(255,255,255,.2);
-}
+/* Footer styles moved to src/styles/Footer.css */
